@@ -3,9 +3,12 @@ import com.piats.backend.enums.Role;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.util.UUID;
 
 @Entity
+@Table(name = "app_user")
 public class User {
 
     @Id
