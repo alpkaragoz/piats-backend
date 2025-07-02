@@ -1,0 +1,11 @@
+package com.piats.backend.repos;
+
+import com.piats.backend.models.ApplicationSkill;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
+
+@Repository
+public interface ApplicationSkillRepository extends JpaRepository<ApplicationSkill, UUID> {
+} 
