@@ -1,13 +1,17 @@
 package com.piats.backend.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "applicants")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
 public class Applicant {
     @Id
     @GeneratedValue(generator = "UUID")
