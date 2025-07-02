@@ -19,6 +19,7 @@ public class AuthController {
         this.userService = userService;
     }
 
+    @PostMapping("/tokens")
     public ResponseEntity<TokenResponseDto> loginUser(@RequestBody User requestUser) {
         return ResponseEntity.ok().body(userService.authenticateUser(requestUser));
     }
