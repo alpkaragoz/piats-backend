@@ -26,7 +26,7 @@ public class SecurityConfig {
                         // Permit access to our new application endpoint
                         .requestMatchers("/api/v1/applications/**").permitAll()
                         // Secure all other endpoints (optional for now, but good practice)
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 );
 
         return http.build();
