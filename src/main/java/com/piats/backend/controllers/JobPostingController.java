@@ -1,51 +1,61 @@
 package com.piats.backend.controllers;
 
-import com.piats.backend.dto.JobPostingRequest;
-import com.piats.backend.models.JobPosting;
-import com.piats.backend.models.User;
-import com.piats.backend.repos.JobPostingRepository;
-import com.piats.backend.repos.UserRepository;
+import com.piats.backend.dto.DetailedApplicationResponseDto;
+import com.piats.backend.dto.JobPostingDto;
+import com.piats.backend.services.ApplicationService;
+import com.piats.backend.services.JobPostingService;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.apache.bcel.classfile.Module.Uses;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-import java.util.Optional;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/job-postings")
+@RequestMapping("/api/v1/job-postings")
 @RequiredArgsConstructor
 public class JobPostingController {
 
-    private final JobPostingRepository jobPostingRepository;
-    private final UserRepository userRepository;
+    private final JobPostingService jobPostingService;
+    private final ApplicationService applicationService;
 
-    @PostMapping("/create")
-    public ResponseEntity<?> createJobPosting(@RequestBody JobPostingRequest request, Principal principal) {
-        Optional<User> creatorOpt = userRepository.findByEmail(principal.getName()); //  retrieves the email embedded in the JWT.
-                                                                                    //   Uses the email from the JWT to fetch the User entity from your database
-        if (creatorOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("User not found");
-        }
-
-        User creator = creatorOpt.get();
-        User assignee = null;
-        if (request.getAssigneeId() != null) {
-            assignee = userRepository.findById(request.getAssigneeId())
-                    .orElse(null);
-        }
-
-        JobPosting posting = JobPosting.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .statusId(request.getStatusId())
-                .createdBy(creator)
-                .assignee(assignee)
-                .build();
-
-        jobPostingRepository.save(posting);
-
-        return ResponseEntity.ok(posting);
+    @PostMapping
+    public ResponseEntity<JobPostingDto.JobPostingResponse> createJobPosting(@RequestBody JobPostingDto.JobPostingRequest request) {
+        JobPostingDto.JobPostingResponse response = jobPostingService.createJobPosting(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
-}
+
+    @GetMapping("/{id}")
+    public ResponseEntity<JobPostingDto.JobPostingResponse> getJobPostingById(@PathVariable UUID id) {
+        JobPostingDto.JobPostingResponse response = jobPostingService.getJobPostingById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<JobPostingDto.JobPostingResponse>> getAllJobPostings() {
+        List<JobPostingDto.JobPostingResponse> responses = jobPostingService.getAllJobPostings();
+        return ResponseEntity.ok(responses);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<JobPostingDto.JobPostingResponse> updateJobPosting(@PathVariable UUID id, @RequestBody JobPostingDto.JobPostingRequest request) {
+        JobPostingDto.JobPostingResponse response = jobPostingService.updateJobPosting(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteJobPosting(@PathVariable UUID id) {
+        jobPostingService.deleteJobPosting(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{jobPostId}/applications")
+    public ResponseEntity<Page<DetailedApplicationResponseDto>> getApplicationsForJobPosting(
+            @PathVariable UUID jobPostId, Pageable pageable) {
+        Page<DetailedApplicationResponseDto> responses = applicationService.getApplicationsByJobPostingId(jobPostId, pageable);
+        return ResponseEntity.ok(responses);
+    }
+} 

@@ -1,9 +1,11 @@
 package com.piats.backend.config;
 
 import com.piats.backend.models.ApplicationStatus;
+import com.piats.backend.models.JobPostingStatus;
 import com.piats.backend.models.Skill;
 import com.piats.backend.models.User;
 import com.piats.backend.repos.ApplicationStatusRepository;
+import com.piats.backend.repos.JobPostingStatusRepository;
 import com.piats.backend.repos.SkillRepository;
 import com.piats.backend.repos.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.List;
 public class DataInitializer implements CommandLineRunner {
 
     private final ApplicationStatusRepository applicationStatusRepository;
+    private final JobPostingStatusRepository jobPostingStatusRepository;
     private final SkillRepository skillRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -29,6 +32,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         initializeApplicationStatuses();
+        initializeJobPostingStatuses();
         initializeSkills();
         initializeDefaultUser();
         initializeTechnicalLead();
@@ -94,6 +98,22 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Default application statuses have been initialized.");
         } else {
             log.info("Application statuses already exist. Skipping initialization.");
+        }
+    }
+
+    private void initializeJobPostingStatuses() {
+        if (jobPostingStatusRepository.count() == 0) {
+            log.info("No job posting statuses found. Initializing default statuses...");
+            List<String> statuses = Arrays.asList("Open", "Closed", "Draft");
+            
+            statuses.forEach(statusName -> {
+                JobPostingStatus status = new JobPostingStatus();
+                status.setName(statusName);
+                jobPostingStatusRepository.save(status);
+            });
+            log.info("Default job posting statuses have been initialized.");
+        } else {
+            log.info("Job posting statuses already exist. Skipping initialization.");
         }
     }
 

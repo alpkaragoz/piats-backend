@@ -18,12 +18,6 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class Application {
 
-    /**
-     * As per instruction, this static UUID will be used for the job_post_id
-     * until the JobPostings feature is implemented.
-     */
-    public static final UUID JOB_POST_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
-
     @Id
     @GeneratedValue(generator = "UUID")
     private UUID id;
@@ -34,8 +28,11 @@ public class Application {
     @EqualsAndHashCode.Exclude
     private Applicant applicant;
 
-    @Column(name = "job_post_id", nullable = false)
-    private UUID jobPostId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_post_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private JobPosting jobPosting;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id")
