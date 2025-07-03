@@ -1,12 +1,12 @@
 package com.piats.backend.controllers;
 
-
 import com.piats.backend.dto.JobPostingRequest;
 import com.piats.backend.models.JobPosting;
 import com.piats.backend.models.User;
 import com.piats.backend.repos.JobPostingRepository;
 import com.piats.backend.repos.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.apache.bcel.classfile.Module.Uses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +23,8 @@ public class JobPostingController {
 
     @PostMapping("/create")
     public ResponseEntity<?> createJobPosting(@RequestBody JobPostingRequest request, Principal principal) {
-        Optional<User> creatorOpt = userRepository.findByEmail(principal.getName());
+        Optional<User> creatorOpt = userRepository.findByEmail(principal.getName()); //  retrieves the email embedded in the JWT.
+                                                                                    //   Uses the email from the JWT to fetch the User entity from your database
         if (creatorOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("User not found");
         }
