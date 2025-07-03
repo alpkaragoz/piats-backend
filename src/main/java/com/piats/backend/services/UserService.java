@@ -19,7 +19,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService; //TODO
+    private final JwtService jwtService;
 
    @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
@@ -35,8 +35,7 @@ public class UserService {
         if (passwordEncoder.matches(requestUser.getPassword(), user.getPassword())) {
             TokenResponseDto responseDto = new TokenResponseDto();
             responseDto.setMessage("Authentication successful.");
-            //TODO
-       //     responseDto.setToken(jwtService.generateToken(user.getId().toString()));
+            responseDto.setToken(jwtService.generateToken(String.valueOf(user.getId()), String.valueOf(user.getRole())));
             responseDto.setId(user.getId().toString());
             return responseDto;
         } else {
