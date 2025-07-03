@@ -1,6 +1,7 @@
 package com.piats.backend.controllers;
 
 import com.piats.backend.dto.MessageResponseDto;
+import com.piats.backend.dto.RegisterUserRequestDto;
 import com.piats.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<MessageResponseDto> registerUser(@RequestBody User requestUser) {
+    public ResponseEntity<MessageResponseDto> registerUser(@RequestBody RegisterUserRequestDto requestUser) {
         return ResponseEntity.ok().body(userService.saveUser(requestUser));
     }
 
