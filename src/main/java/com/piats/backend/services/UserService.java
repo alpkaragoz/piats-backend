@@ -1,7 +1,9 @@
 package com.piats.backend.services;
 
 import com.piats.backend.dto.MessageResponseDto;
+import com.piats.backend.dto.RegisterUserRequestDto;
 import com.piats.backend.dto.TokenResponseDto;
+import com.piats.backend.enums.Role;
 import com.piats.backend.exceptions.InvalidCredentialsException;
 import com.piats.backend.exceptions.UserAlreadyExistsException;
 import com.piats.backend.exceptions.UserNotFoundException;
@@ -42,16 +44,23 @@ public class UserService {
         }
     }
 
-    public MessageResponseDto saveUser(User requestUser) {
+    public MessageResponseDto saveUser(RegisterUserRequestDto requestUser) {
         String email = requestUser.getEmail();
         if (userRepository.findByEmail(email).isPresent()) {
             throw new UserAlreadyExistsException("User with given email already exists.");
         }
         ValidationUtil.validateRegister(requestUser);
+        Role role = Role.valueOf(requestUser.getRole());
+        User user = new User();
+        user.setEmail(requestUser.getEmail());
+        user.setPassword(passwordEncoder.encode(requestUser.getPassword()));
+        user.setFirstName(requestUser.getFirstName());
+        user.setLastName(requestUser.getLastName());
+        user.setRole(role);
+        userRepository.save(user);
+
         MessageResponseDto responseDto = new MessageResponseDto();
         responseDto.setMessage("Registration successful.");
-        requestUser.setPassword(passwordEncoder.encode(requestUser.getPassword()));
-        userRepository.save(requestUser);
         return responseDto;
     }
 }
