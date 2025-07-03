@@ -11,6 +11,7 @@ import java.util.UUID;
 public interface ApplicationService {
     ApplicationResponseDto createApplication(ApplicationRequestDto requestDto);
     DetailedApplicationResponseDto getApplicationById(UUID id);
-    Page<DetailedApplicationResponseDto> getAllApplications(Pageable pageable);
+    Page<DetailedApplicationResponseDto> getAllApplications(Integer statusId, Integer skillId, Pageable pageable);
     Page<DetailedApplicationResponseDto> getApplicationsByJobPostingId(UUID jobPostId, Pageable pageable);
+    DetailedApplicationResponseDto updateApplicationStatus(UUID applicationId, Integer statusId);
 } 

@@ -1,22 +1,23 @@
 package com.piats.backend.config;
 
-import com.piats.backend.models.ApplicationStatus;
-import com.piats.backend.models.JobPostingStatus;
-import com.piats.backend.models.Skill;
-import com.piats.backend.models.User;
-import com.piats.backend.repos.ApplicationStatusRepository;
-import com.piats.backend.repos.JobPostingStatusRepository;
-import com.piats.backend.repos.SkillRepository;
-import com.piats.backend.repos.UserRepository;
+import com.piats.backend.enums.EmploymentType;
+import com.piats.backend.enums.ExperienceLevel;
+import com.piats.backend.enums.Role;
+import com.piats.backend.models.*;
+import com.piats.backend.repos.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import com.piats.backend.enums.Role;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -25,114 +26,190 @@ public class DataInitializer implements CommandLineRunner {
 
     private final ApplicationStatusRepository applicationStatusRepository;
     private final JobPostingStatusRepository jobPostingStatusRepository;
-    private final SkillRepository skillRepository;
     private final UserRepository userRepository;
+    private final SkillRepository skillRepository;
+    private final JobPostingRepository jobPostingRepository;
+    private final ApplicantRepository applicantRepository;
+    private final ApplicationRepository applicationRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
-        initializeApplicationStatuses();
-        initializeJobPostingStatuses();
-        initializeSkills();
-        initializeDefaultUser();
-        initializeTechnicalLead();
+        initializeLookupTables();
+        seedCoreData();
     }
 
-    /**
-     * Initializes a default recruiter if one doesn't exist.
-     */
-    private void initializeDefaultUser() {
-        String defaultUserEmail = "recruiter@piats.com";
-        if (userRepository.findByEmail(defaultUserEmail).isEmpty()) {
-            log.info("Recruiter not found. Creating...");
-            User defaultUser = new User();
-            defaultUser.setEmail(defaultUserEmail);
-            defaultUser.setPassword(passwordEncoder.encode("123456"));
-            defaultUser.setFirstName("Joe");
-            defaultUser.setLastName("Doe");
-            defaultUser.setRole(Role.RECRUITER);
-            userRepository.save(defaultUser);
-            log.info("Recruiter created with email: {}", defaultUserEmail);
-        } else {
-            log.info("Recruiter already exists. Skipping initialization.");
-        }
-    }
-
-    /**
-     * Initializes a default Technical Manager if one doesn't exist.
-     */
-    private void initializeTechnicalLead() {
-        String managerEmail = "technicallead@piats.com";
-        if (userRepository.findByEmail(managerEmail).isEmpty()) {
-            log.info("Technical Lead not found. Creating...");
-            User techManager = new User();
-            techManager.setEmail(managerEmail);
-            techManager.setPassword(passwordEncoder.encode("123456"));
-            techManager.setFirstName("Jane");
-            techManager.setLastName("Smith");
-            techManager.setRole(Role.TECHNICAL_LEAD);
-            userRepository.save(techManager);
-            log.info("Technical Lead created with email: {}", managerEmail);
-        } else {
-            log.info("Technical Lead already exists. Skipping initialization.");
-        }
-    }
-
-    private void initializeApplicationStatuses() {
+    private void initializeLookupTables() {
         if (applicationStatusRepository.count() == 0) {
-            log.info("No application statuses found. Initializing default statuses...");
-            List<String> statuses = Arrays.asList(
-                "Received",
-                "Under Review",
-                "Interviewing",
-                "Offered",
-                "Hired",
-                "Rejected"
-            );
-            
-            statuses.forEach(statusName -> {
+            log.info("Initializing Application Statuses...");
+            List<String> appStatuses = Arrays.asList("Received", "Under Review", "Interviewing", "Offered", "Hired", "Rejected");
+            appStatuses.forEach(name -> {
                 ApplicationStatus status = new ApplicationStatus();
-                status.setName(statusName);
+                status.setName(name);
                 applicationStatusRepository.save(status);
             });
-            log.info("Default application statuses have been initialized.");
-        } else {
-            log.info("Application statuses already exist. Skipping initialization.");
         }
-    }
 
-    private void initializeJobPostingStatuses() {
         if (jobPostingStatusRepository.count() == 0) {
-            log.info("No job posting statuses found. Initializing default statuses...");
-            List<String> statuses = Arrays.asList("Open", "Closed", "Draft");
-            
-            statuses.forEach(statusName -> {
+            log.info("Initializing Job Posting Statuses...");
+            List<String> jobStatuses = Arrays.asList("Open", "Closed", "Draft");
+            jobStatuses.forEach(name -> {
                 JobPostingStatus status = new JobPostingStatus();
-                status.setName(statusName);
+                status.setName(name);
                 jobPostingStatusRepository.save(status);
             });
-            log.info("Default job posting statuses have been initialized.");
-        } else {
-            log.info("Job posting statuses already exist. Skipping initialization.");
         }
     }
 
-    private void initializeSkills() {
-        if (skillRepository.count() == 0) {
-            log.info("No skills found. Initializing default skills...");
-            List<String> skills = Arrays.asList(
-                "Java", "Spring Boot", "PostgreSQL", "Docker", "Kubernetes",
-                "JavaScript", "React", "Node.js", "Python", "Git"
-            );
-
-            skills.forEach(skillName -> {
-                Skill skill = new Skill();
-                skill.setName(skillName);
-                skillRepository.save(skill);
-            });
-            log.info("Default skills have been initialized.");
-        } else {
-            log.info("Skills already exist. Skipping initialization.");
+    private void seedCoreData() {
+        if (userRepository.count() > 0) {
+            log.info("Core data already exists. Skipping seed.");
+            return;
         }
+        log.info("Seeding core database...");
+
+        Map<String, Skill> skills = createSkills();
+        List<User> users = createUsers();
+        List<JobPosting> jobPostings = createJobPostings(users, jobPostingStatusRepository.findAll());
+        createApplications(jobPostings, skills, applicationStatusRepository.findAll());
+
+        log.info("Core data seeding finished.");
+    }
+
+    private Map<String, Skill> createSkills() {
+        return Arrays.asList("Java", "Spring Boot", "PostgreSQL", "Docker", "AWS", "React", "TypeScript", "SQL")
+                .stream()
+                .map(name -> {
+                    Skill skill = new Skill();
+                    skill.setName(name);
+                    return skillRepository.save(skill);
+                })
+                .collect(Collectors.toMap(Skill::getName, skill -> skill));
+    }
+
+    private List<User> createUsers() {
+        User user1 = new User();
+        user1.setFirstName("Jane");
+        user1.setLastName("Doe");
+        user1.setEmail("jane.doe@example.com");
+        user1.setPassword(passwordEncoder.encode("123456"));
+        user1.setRole(Role.RECRUITER);
+
+        User user2 = new User();
+        user2.setFirstName("John");
+        user2.setLastName("Smith");
+        user2.setEmail("john.smith@example.com");
+        user2.setPassword(passwordEncoder.encode("123456"));
+        user2.setRole(Role.TECHNICAL_LEAD);
+
+        return userRepository.saveAll(Arrays.asList(user1, user2));
+    }
+
+    private List<JobPosting> createJobPostings(List<User> users, List<JobPostingStatus> statuses) {
+        JobPostingStatus openStatus = statuses.stream().filter(s -> "Open".equals(s.getName())).findFirst().orElseThrow();
+
+        JobPosting jp1 = new JobPosting();
+        jp1.setTitle("Senior Backend Engineer");
+        jp1.setDescription("Design and build scalable backend services for our core platform.");
+        jp1.setLocation("Remote");
+        jp1.setEmploymentType(EmploymentType.FULL_TIME);
+        jp1.setExperienceLevel(ExperienceLevel.SENIOR_LEVEL);
+        jp1.setCreatedBy(users.get(0));
+        jp1.setAssignee(users.get(0));
+        jp1.setStatus(openStatus);
+
+        JobPosting jp2 = new JobPosting();
+        jp2.setTitle("Frontend Developer (React)");
+        jp2.setDescription("Develop and maintain our user-facing applications using modern web technologies.");
+        jp2.setLocation("New York, NY");
+        jp2.setEmploymentType(EmploymentType.FULL_TIME);
+        jp2.setExperienceLevel(ExperienceLevel.MID_LEVEL);
+        jp2.setCreatedBy(users.get(1));
+        jp2.setAssignee(users.get(0));
+        jp2.setStatus(openStatus);
+
+        return jobPostingRepository.saveAll(Arrays.asList(jp1, jp2));
+    }
+
+    private void createApplications(List<JobPosting> jobPostings, Map<String, Skill> skills, List<ApplicationStatus> statuses) {
+        ApplicationStatus receivedStatus = statuses.stream().filter(s -> "Received".equals(s.getName())).findFirst().orElseThrow();
+        ApplicationStatus reviewStatus = statuses.stream().filter(s -> "Under Review".equals(s.getName())).findFirst().orElseThrow();
+
+        // --- Application 1: Alice for Backend Role ---
+        Applicant applicant1 = new Applicant();
+        applicant1.setFirstName("Alice");
+        applicant1.setLastName("Johnson");
+        applicant1.setEmail("alice.j@example.com");
+        applicant1.setProfessionalSummary("Experienced backend developer with 5+ years in Java and cloud systems.");
+        applicant1.setPhone("123-456-7890");
+        applicantRepository.save(applicant1);
+
+        Application app1 = new Application();
+        app1.setApplicant(applicant1);
+        app1.setJobPosting(jobPostings.get(0));
+        app1.setStatus(reviewStatus);
+        app1.setRanking(1);
+
+        Experience exp1 = new Experience();
+        exp1.setApplication(app1);
+        exp1.setJobTitle("Software Engineer");
+        exp1.setCompanyName("Tech Solutions Inc.");
+        exp1.setStartDate(LocalDate.of(2020, 1, 15));
+        app1.getExperiences().add(exp1);
+        
+        Education edu1 = new Education();
+        edu1.setApplication(app1);
+        edu1.setDegree("B.Sc. in Computer Science");
+        edu1.setInstitution("State University");
+        edu1.setEndDate(LocalDate.of(2019, 12, 20));
+        app1.getEducations().add(edu1);
+        
+        app1.getSkills().add(createAppSkill(app1, skills.get("Java"), 5));
+        app1.getSkills().add(createAppSkill(app1, skills.get("Spring Boot"), 4));
+        app1.getSkills().add(createAppSkill(app1, skills.get("AWS"), 3));
+        applicationRepository.save(app1);
+
+
+        // --- Application 2: Bob for Frontend Role ---
+        Applicant applicant2 = new Applicant();
+        applicant2.setFirstName("Bob");
+        applicant2.setLastName("Williams");
+        applicant2.setEmail("bob.w@example.com");
+        applicant2.setProfessionalSummary("Creative frontend developer passionate about user experience.");
+        applicant2.setPhone("098-765-4321");
+        applicantRepository.save(applicant2);
+
+        Application app2 = new Application();
+        app2.setApplicant(applicant2);
+        app2.setJobPosting(jobPostings.get(1));
+        app2.setStatus(receivedStatus);
+        app2.setRanking(1);
+
+        Experience exp2 = new Experience();
+        exp2.setApplication(app2);
+        exp2.setJobTitle("UI Developer");
+        exp2.setCompanyName("Web Creations LLC");
+        exp2.setStartDate(LocalDate.of(2021, 6, 1));
+        app2.getExperiences().add(exp2);
+
+        Education edu2 = new Education();
+        edu2.setApplication(app2);
+        edu2.setDegree("B.A. in Digital Media");
+        edu2.setInstitution("Arts College");
+        edu2.setEndDate(LocalDate.of(2021, 5, 15));
+        app2.getEducations().add(edu2);
+
+        app2.getSkills().add(createAppSkill(app2, skills.get("React"), 3));
+        app2.getSkills().add(createAppSkill(app2, skills.get("TypeScript"), 2));
+        applicationRepository.save(app2);
+    }
+    
+    private ApplicationSkill createAppSkill(Application app, Skill skill, int years) {
+        ApplicationSkill appSkill = new ApplicationSkill();
+        appSkill.setApplication(app);
+        appSkill.setSkill(skill);
+        appSkill.setYearsOfExperience(years);
+        return appSkill;
     }
 } 

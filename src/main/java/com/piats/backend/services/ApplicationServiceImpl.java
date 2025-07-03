@@ -5,11 +5,13 @@ import com.piats.backend.dto.ApplicationResponseDto;
 import com.piats.backend.dto.DetailedApplicationResponseDto;
 import com.piats.backend.models.*;
 import com.piats.backend.repos.*;
+import com.piats.backend.repos.specs.ApplicationSpecification;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
@@ -24,6 +26,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final ApplicationStatusRepository applicationStatusRepository;
     private final SkillRepository skillRepository;
     private final JobPostingRepository jobPostingRepository;
+    private final ApplicationSpecification applicationSpecification;
 
     @Override
     @Transactional
@@ -77,8 +80,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public Page<DetailedApplicationResponseDto> getAllApplications(Pageable pageable) {
-        Page<Application> applications = applicationRepository.findAll(pageable);
+    public Page<DetailedApplicationResponseDto> getAllApplications(Integer statusId, Integer skillId, Pageable pageable) {
+        Specification<Application> spec = Specification.allOf(
+                applicationSpecification.hasStatus(statusId),
+                applicationSpecification.hasSkill(skillId)
+        );
+
+        Page<Application> applications = applicationRepository.findAll(spec, pageable);
         return applications.map(this::mapApplicationToDetailedResponse);
     }
 
@@ -89,6 +97,21 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
         Page<Application> applications = applicationRepository.findByJobPostingId(jobPostId, pageable);
         return applications.map(this::mapApplicationToDetailedResponse);
+    }
+
+    @Override
+    @Transactional
+    public DetailedApplicationResponseDto updateApplicationStatus(UUID applicationId, Integer statusId) {
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new EntityNotFoundException("Application not found with id: " + applicationId));
+
+        ApplicationStatus status = applicationStatusRepository.findById(statusId)
+                .orElseThrow(() -> new EntityNotFoundException("ApplicationStatus not found with id: " + statusId));
+
+        application.setStatus(status);
+        Application updatedApplication = applicationRepository.save(application);
+
+        return mapApplicationToDetailedResponse(updatedApplication);
     }
 
     private void addDetailsToApplication(Application application, ApplicationRequestDto requestDto) {

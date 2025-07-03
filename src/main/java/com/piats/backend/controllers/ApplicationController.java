@@ -3,6 +3,7 @@ package com.piats.backend.controllers;
 import com.piats.backend.dto.ApplicationRequestDto;
 import com.piats.backend.dto.ApplicationResponseDto;
 import com.piats.backend.dto.DetailedApplicationResponseDto;
+import com.piats.backend.dto.UpdateApplicationStatusDto;
 import com.piats.backend.services.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,8 +32,19 @@ public class ApplicationController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<DetailedApplicationResponseDto>> getAllApplications(Pageable pageable) {
-        Page<DetailedApplicationResponseDto> responses = applicationService.getAllApplications(pageable);
+    public ResponseEntity<Page<DetailedApplicationResponseDto>> getAllApplications(
+            @RequestParam(required = false) Integer statusId,
+            @RequestParam(required = false) Integer skillId,
+            Pageable pageable) {
+        Page<DetailedApplicationResponseDto> responses = applicationService.getAllApplications(statusId, skillId, pageable);
         return ResponseEntity.ok(responses);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<DetailedApplicationResponseDto> updateApplicationStatus(
+            @PathVariable java.util.UUID id,
+            @RequestBody UpdateApplicationStatusDto statusDto) {
+        DetailedApplicationResponseDto response = applicationService.updateApplicationStatus(id, statusDto.getStatusId());
+        return ResponseEntity.ok(response);
     }
 } 
