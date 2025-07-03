@@ -1,10 +1,13 @@
 package com.piats.backend.services;
 
+import com.piats.backend.dto.MessageResponseDto;
 import com.piats.backend.dto.TokenResponseDto;
 import com.piats.backend.exceptions.InvalidCredentialsException;
+import com.piats.backend.exceptions.UserAlreadyExistsException;
 import com.piats.backend.exceptions.UserNotFoundException;
 import com.piats.backend.models.User;
 import com.piats.backend.repos.UserRepository;
+import com.piats.backend.utils.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,7 +17,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final JwtService jwtService; //TODO
 
    @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
@@ -30,11 +33,25 @@ public class UserService {
         if (passwordEncoder.matches(requestUser.getPassword(), user.getPassword())) {
             TokenResponseDto responseDto = new TokenResponseDto();
             responseDto.setMessage("Authentication successful.");
+            //TODO
        //     responseDto.setToken(jwtService.generateToken(user.getId().toString()));
             responseDto.setId(user.getId().toString());
             return responseDto;
         } else {
             throw new InvalidCredentialsException("Given email or password is wrong.");
         }
+    }
+
+    public MessageResponseDto saveUser(User requestUser) {
+        String email = requestUser.getEmail();
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new UserAlreadyExistsException("User with given email already exists.");
+        }
+        ValidationUtil.validateRegister(requestUser);
+        MessageResponseDto responseDto = new MessageResponseDto();
+        responseDto.setMessage("Registration successful.");
+        requestUser.setPassword(passwordEncoder.encode(requestUser.getPassword()));
+        userRepository.save(requestUser);
+        return responseDto;
     }
 }

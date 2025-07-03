@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "http://localhost:4200") //TODO
 public class AuthController {
 
     private final UserService userService;
@@ -19,6 +19,7 @@ public class AuthController {
         this.userService = userService;
     }
 
+    //TODO
     @PostMapping("/tokens")
     public ResponseEntity<TokenResponseDto> loginUser(@RequestBody User requestUser) {
         return ResponseEntity.ok().body(userService.authenticateUser(requestUser));
