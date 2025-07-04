@@ -23,8 +23,8 @@ public class JobPostingController {
     private final ApplicationService applicationService;
 
     @PostMapping
-    public ResponseEntity<JobPostingDto.JobPostingResponse> createJobPosting(@RequestBody JobPostingDto.JobPostingRequest request) {
-        JobPostingDto.JobPostingResponse response = jobPostingService.createJobPosting(request);
+    public ResponseEntity<JobPostingDto.JobPostingResponse> createJobPosting(@RequestBody JobPostingDto.JobPostingRequest request, @RequestHeader("Authorization") String header) {
+        JobPostingDto.JobPostingResponse response = jobPostingService.createJobPosting(request, header);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
