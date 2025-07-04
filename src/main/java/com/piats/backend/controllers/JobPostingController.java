@@ -41,14 +41,14 @@ public class JobPostingController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<JobPostingDto.JobPostingResponse> updateJobPosting(@PathVariable UUID id, @RequestBody JobPostingDto.JobPostingRequest request) {
-        JobPostingDto.JobPostingResponse response = jobPostingService.updateJobPosting(id, request);
+    public ResponseEntity<JobPostingDto.JobPostingResponse> updateJobPosting(@PathVariable UUID id, @RequestBody JobPostingDto.JobPostingRequest request, @RequestHeader("Authorization") String header) {
+        JobPostingDto.JobPostingResponse response = jobPostingService.updateJobPosting(id, request, header);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteJobPosting(@PathVariable UUID id) {
-        jobPostingService.deleteJobPosting(id);
+    public ResponseEntity<Void> deleteJobPosting(@PathVariable UUID id, @RequestHeader("Authorization") String header) {
+        jobPostingService.deleteJobPosting(id, header);
         return ResponseEntity.noContent().build();
     }
 
