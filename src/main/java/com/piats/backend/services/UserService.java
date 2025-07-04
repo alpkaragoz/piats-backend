@@ -1,9 +1,6 @@
 package com.piats.backend.services;
 
-import com.piats.backend.dto.LoginUserRequestDto;
-import com.piats.backend.dto.MessageResponseDto;
-import com.piats.backend.dto.RegisterUserRequestDto;
-import com.piats.backend.dto.TokenResponseDto;
+import com.piats.backend.dto.*;
 import com.piats.backend.enums.Role;
 import com.piats.backend.exceptions.InvalidCredentialsException;
 import com.piats.backend.exceptions.UserAlreadyExistsException;
@@ -12,6 +9,8 @@ import com.piats.backend.models.User;
 import com.piats.backend.repos.UserRepository;
 import com.piats.backend.utils.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -62,5 +61,24 @@ public class UserService {
         MessageResponseDto responseDto = new MessageResponseDto();
         responseDto.setMessage("Registration successful.");
         return responseDto;
+    }
+
+    public Page<UserInfoRequestDto> getAllUsers(Pageable pageable, String role) {
+        Page<User> userPage;
+        if (!(role == null) && ValidationUtil.doesUserRoleExist(role)) {
+            String validatedRole = role.toUpperCase();
+            userPage = userRepository.findByRole(Role.valueOf(validatedRole), pageable);
+        } else {
+            userPage = userRepository.findAll(pageable);
+        }
+        return userPage.map(this::convertToUserInfoRequestDto);
+    }
+
+    private UserInfoRequestDto convertToUserInfoRequestDto(User user) {
+        UserInfoRequestDto dto = new UserInfoRequestDto();
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setRole(user.getRole().name());
+        return dto;
     }
 }
