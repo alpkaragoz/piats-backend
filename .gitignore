@@ -52,11 +52,3 @@ buildNumber.properties
 .classpath
 >>>>>>> ce166dc52f97e8b1d953220dde4a30f28ee89d28
 
-# Ignore application properties
-src/main/resources/application.properties
-src/main/resources/application.yml
-
-# Ignore any environment-specific properties
-src/main/resources/application-*.properties
-src/main/resources/application-*.yml
-
