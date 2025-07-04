@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.piats.backend.models.User;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @CrossOrigin(origins = "http://localhost:4200") //TODO
 public class UserController {
     private final UserService userService;
