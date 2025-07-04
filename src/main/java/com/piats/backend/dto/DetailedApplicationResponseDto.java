@@ -1,25 +1,36 @@
 package com.piats.backend.dto;
 
+import com.piats.backend.enums.ExperienceLevel;
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Data
-public class ApplicationRequestDto {
+public class DetailedApplicationResponseDto {
+    private UUID id;
+    private JobInfo jobPosting;
     private ApplicantDto applicant;
-    private UUID jobPostId;
+    private String status;
+    private Integer ranking;
+    private ZonedDateTime appliedAt;
     private List<ExperienceDto> experiences;
     private List<EducationDto> educations;
     private List<LanguageDto> languages;
     private List<ProjectDto> projects;
     private List<CertificationDto> certifications;
     private List<ApplicationSkillDto> skills;
-    private Integer statusId;
-    private Integer ranking;
+
+    @Data
+    public static class JobInfo {
+        private UUID id;
+        private String title;
+    }
 
     @Data
     public static class ApplicantDto {
+        private UUID id;
         private String firstName;
         private String lastName;
         private String email;
@@ -35,6 +46,7 @@ public class ApplicationRequestDto {
 
     @Data
     public static class ExperienceDto {
+        private UUID id;
         private String jobTitle;
         private String companyName;
         private String description;
@@ -45,6 +57,7 @@ public class ApplicationRequestDto {
 
     @Data
     public static class EducationDto {
+        private UUID id;
         private String degree;
         private String institution;
         private String fieldOfStudy;
@@ -54,12 +67,14 @@ public class ApplicationRequestDto {
 
     @Data
     public static class LanguageDto {
+        private UUID id;
         private String language;
         private String cefrLevel;
     }
 
     @Data
     public static class ProjectDto {
+        private UUID id;
         private String name;
         private String description;
         private String role;
@@ -71,6 +86,7 @@ public class ApplicationRequestDto {
 
     @Data
     public static class CertificationDto {
+        private UUID id;
         private String name;
         private String issuer;
         private LocalDate issueDate;
@@ -81,7 +97,8 @@ public class ApplicationRequestDto {
 
     @Data
     public static class ApplicationSkillDto {
-        private Integer skillId;
+        private UUID id;
+        private String skillName;
         private Integer yearsOfExperience;
     }
 } 

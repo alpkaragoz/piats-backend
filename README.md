@@ -92,3 +92,4 @@ CREATE application request:
   "statusId": 1,
   "ranking": 95
 }
+

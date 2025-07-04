@@ -2,14 +2,20 @@ package com.piats.backend.services;
 
 import com.piats.backend.dto.ApplicationRequestDto;
 import com.piats.backend.dto.ApplicationResponseDto;
+import com.piats.backend.dto.DetailedApplicationResponseDto;
 import com.piats.backend.models.*;
 import com.piats.backend.repos.*;
+import com.piats.backend.repos.specs.ApplicationSpecification;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +25,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final ApplicationStatusRepository applicationStatusRepository;
     private final SkillRepository skillRepository;
+    private final JobPostingRepository jobPostingRepository;
+    private final ApplicationSpecification applicationSpecification;
 
     @Override
     @Transactional
@@ -42,7 +50,11 @@ public class ApplicationServiceImpl implements ApplicationService {
         // 2. Create the main Application entity
         Application application = new Application();
         application.setApplicant(applicant);
-        application.setJobPostId(Application.JOB_POST_ID); // Using static job post ID
+
+        JobPosting jobPosting = jobPostingRepository.findById(requestDto.getJobPostId())
+                .orElseThrow(() -> new EntityNotFoundException("JobPosting not found with id: " + requestDto.getJobPostId()));
+        application.setJobPosting(jobPosting);
+        
         application.setRanking(requestDto.getRanking());
 
         if (requestDto.getStatusId() != null) {
@@ -58,6 +70,48 @@ public class ApplicationServiceImpl implements ApplicationService {
         Application savedApplication = applicationRepository.save(application);
 
         return new ApplicationResponseDto(savedApplication.getId(), "Application created successfully.");
+    }
+
+    @Override
+    public DetailedApplicationResponseDto getApplicationById(UUID id) {
+        Application application = applicationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Application not found with id: " + id));
+        return mapApplicationToDetailedResponse(application);
+    }
+
+    @Override
+    public Page<DetailedApplicationResponseDto> getAllApplications(Integer statusId, Integer skillId, Pageable pageable) {
+        Specification<Application> spec = Specification.allOf(
+                applicationSpecification.hasStatus(statusId),
+                applicationSpecification.hasSkill(skillId)
+        );
+
+        Page<Application> applications = applicationRepository.findAll(spec, pageable);
+        return applications.map(this::mapApplicationToDetailedResponse);
+    }
+
+    @Override
+    public Page<DetailedApplicationResponseDto> getApplicationsByJobPostingId(UUID jobPostId, Pageable pageable) {
+        if (!jobPostingRepository.existsById(jobPostId)) {
+            throw new EntityNotFoundException("JobPosting not found with id: " + jobPostId);
+        }
+        Page<Application> applications = applicationRepository.findByJobPostingId(jobPostId, pageable);
+        return applications.map(this::mapApplicationToDetailedResponse);
+    }
+
+    @Override
+    @Transactional
+    public DetailedApplicationResponseDto updateApplicationStatus(UUID applicationId, Integer statusId) {
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new EntityNotFoundException("Application not found with id: " + applicationId));
+
+        ApplicationStatus status = applicationStatusRepository.findById(statusId)
+                .orElseThrow(() -> new EntityNotFoundException("ApplicationStatus not found with id: " + statusId));
+
+        application.setStatus(status);
+        Application updatedApplication = applicationRepository.save(application);
+
+        return mapApplicationToDetailedResponse(updatedApplication);
     }
 
     private void addDetailsToApplication(Application application, ApplicationRequestDto requestDto) {
@@ -144,5 +198,115 @@ public class ApplicationServiceImpl implements ApplicationService {
                 return appSkill;
             }).collect(Collectors.toSet()));
         }
+    }
+
+    private DetailedApplicationResponseDto mapApplicationToDetailedResponse(Application application) {
+        DetailedApplicationResponseDto dto = new DetailedApplicationResponseDto();
+        dto.setId(application.getId());
+        dto.setRanking(application.getRanking());
+        dto.setAppliedAt(application.getAppliedAt());
+
+        if (application.getStatus() != null) {
+            dto.setStatus(application.getStatus().getName());
+        }
+
+        // Map JobPosting Info
+        DetailedApplicationResponseDto.JobInfo jobInfo = new DetailedApplicationResponseDto.JobInfo();
+        jobInfo.setId(application.getJobPosting().getId());
+        jobInfo.setTitle(application.getJobPosting().getTitle());
+        dto.setJobPosting(jobInfo);
+
+        // Map Applicant
+        Applicant applicant = application.getApplicant();
+        DetailedApplicationResponseDto.ApplicantDto applicantDto = new DetailedApplicationResponseDto.ApplicantDto();
+        applicantDto.setId(applicant.getId());
+        applicantDto.setFirstName(applicant.getFirstName());
+        applicantDto.setLastName(applicant.getLastName());
+        applicantDto.setEmail(applicant.getEmail());
+        applicantDto.setProfessionalSummary(applicant.getProfessionalSummary());
+        applicantDto.setPhone(applicant.getPhone());
+        applicantDto.setAddress(applicant.getAddress());
+        applicantDto.setCity(applicant.getCity());
+        applicantDto.setCountry(applicant.getCountry());
+        applicantDto.setPostalCode(applicant.getPostalCode());
+        applicantDto.setLinkedInUrl(applicant.getLinkedInUrl());
+        applicantDto.setPortfolioUrl(applicant.getPortfolioUrl());
+        dto.setApplicant(applicantDto);
+
+        // Map Collections
+        dto.setExperiences(application.getExperiences().stream().map(this::mapExperience).collect(Collectors.toList()));
+        dto.setEducations(application.getEducations().stream().map(this::mapEducation).collect(Collectors.toList()));
+        dto.setLanguages(application.getLanguages().stream().map(this::mapLanguage).collect(Collectors.toList()));
+        dto.setProjects(application.getProjects().stream().map(this::mapProject).collect(Collectors.toList()));
+        dto.setCertifications(application.getCertifications().stream().map(this::mapCertification).collect(Collectors.toList()));
+        dto.setSkills(application.getSkills().stream().map(this::mapApplicationSkill).collect(Collectors.toList()));
+
+        return dto;
+    }
+
+    private DetailedApplicationResponseDto.ExperienceDto mapExperience(Experience exp) {
+        DetailedApplicationResponseDto.ExperienceDto dto = new DetailedApplicationResponseDto.ExperienceDto();
+        dto.setId(exp.getId());
+        dto.setJobTitle(exp.getJobTitle());
+        dto.setCompanyName(exp.getCompanyName());
+        dto.setDescription(exp.getDescription());
+        dto.setLocation(exp.getLocation());
+        dto.setStartDate(exp.getStartDate());
+        dto.setEndDate(exp.getEndDate());
+        return dto;
+    }
+
+    private DetailedApplicationResponseDto.EducationDto mapEducation(Education edu) {
+        DetailedApplicationResponseDto.EducationDto dto = new DetailedApplicationResponseDto.EducationDto();
+        dto.setId(edu.getId());
+        dto.setDegree(edu.getDegree());
+        dto.setInstitution(edu.getInstitution());
+        dto.setFieldOfStudy(edu.getFieldOfStudy());
+        dto.setStartDate(edu.getStartDate());
+        dto.setEndDate(edu.getEndDate());
+        return dto;
+    }
+
+    private DetailedApplicationResponseDto.LanguageDto mapLanguage(Language lang) {
+        DetailedApplicationResponseDto.LanguageDto dto = new DetailedApplicationResponseDto.LanguageDto();
+        dto.setId(lang.getId());
+        dto.setLanguage(lang.getLanguage());
+        dto.setCefrLevel(lang.getCefrLevel());
+        return dto;
+    }
+
+    private DetailedApplicationResponseDto.ProjectDto mapProject(Project proj) {
+        DetailedApplicationResponseDto.ProjectDto dto = new DetailedApplicationResponseDto.ProjectDto();
+        dto.setId(proj.getId());
+        dto.setName(proj.getName());
+        dto.setDescription(proj.getDescription());
+        dto.setRole(proj.getRole());
+        dto.setTechnologies(proj.getTechnologies());
+        dto.setStartDate(proj.getStartDate());
+        dto.setEndDate(proj.getEndDate());
+        dto.setUrl(proj.getUrl());
+        return dto;
+    }
+
+    private DetailedApplicationResponseDto.CertificationDto mapCertification(Certification cert) {
+        DetailedApplicationResponseDto.CertificationDto dto = new DetailedApplicationResponseDto.CertificationDto();
+        dto.setId(cert.getId());
+        dto.setName(cert.getName());
+        dto.setIssuer(cert.getIssuer());
+        dto.setIssueDate(cert.getIssueDate());
+        dto.setExpirationDate(cert.getExpirationDate());
+        dto.setCredentialId(cert.getCredentialId());
+        dto.setCredentialUrl(cert.getCredentialUrl());
+        return dto;
+    }
+
+    private DetailedApplicationResponseDto.ApplicationSkillDto mapApplicationSkill(ApplicationSkill appSkill) {
+        DetailedApplicationResponseDto.ApplicationSkillDto dto = new DetailedApplicationResponseDto.ApplicationSkillDto();
+        dto.setId(appSkill.getId());
+        dto.setYearsOfExperience(appSkill.getYearsOfExperience());
+        if (appSkill.getSkill() != null) {
+            dto.setSkillName(appSkill.getSkill().getName());
+        }
+        return dto;
     }
 } 
