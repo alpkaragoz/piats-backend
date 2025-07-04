@@ -32,9 +32,10 @@ public class JobPostingServiceImpl implements JobPostingService {
     @Override
     @Transactional
     public JobPostingDto.JobPostingResponse createJobPosting(JobPostingDto.JobPostingRequest request, String header) {
-        if(!authUtil.isRoleFromHeaderValid(Role.RECRUITER, header)) {
+        //TODO
+    /*    if(!authUtil.isRoleFromHeaderValid(Role.RECRUITER, header)) {
             throw new BadRequestException("Invalid role to post job.");
-        }
+        } */
         JobPosting jobPosting = new JobPosting();
         mapRequestToJobPosting(request, jobPosting);
         JobPosting savedJobPosting = jobPostingRepository.save(jobPosting);
@@ -58,9 +59,10 @@ public class JobPostingServiceImpl implements JobPostingService {
     @Override
     @Transactional
     public JobPostingDto.JobPostingResponse updateJobPosting(UUID id, JobPostingDto.JobPostingRequest request, String header) {
-        if(!authUtil.isRoleFromHeaderValid(Role.RECRUITER, header)) {
+        //TODO
+    /*    if(!authUtil.isRoleFromHeaderValid(Role.RECRUITER, header)) {
             throw new BadRequestException("Invalid role to update job.");
-        }
+        } */
         JobPosting jobPosting = jobPostingRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("JobPosting not found with id: " + id));
         mapRequestToJobPosting(request, jobPosting);
@@ -70,9 +72,10 @@ public class JobPostingServiceImpl implements JobPostingService {
 
     @Override
     public void deleteJobPosting(UUID id, String header) {
-        if(!authUtil.isRoleFromHeaderValid(Role.RECRUITER, header)) {
+        //TODO
+    /*    if(!authUtil.isRoleFromHeaderValid(Role.RECRUITER, header)) {
             throw new BadRequestException("Invalid role to delete job.");
-        }
+        } */
         if (!jobPostingRepository.existsById(id)) {
             throw new EntityNotFoundException("JobPosting not found with id: " + id);
         }

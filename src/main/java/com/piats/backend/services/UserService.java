@@ -1,5 +1,6 @@
 package com.piats.backend.services;
 
+import com.piats.backend.dto.LoginUserRequestDto;
 import com.piats.backend.dto.MessageResponseDto;
 import com.piats.backend.dto.RegisterUserRequestDto;
 import com.piats.backend.dto.TokenResponseDto;
@@ -28,7 +29,7 @@ public class UserService {
        this.jwtService = jwtService;
    }
 
-    public TokenResponseDto authenticateUser(User requestUser) {
+    public TokenResponseDto authenticateUser(LoginUserRequestDto requestUser) {
         String email = requestUser.getEmail();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Given email or password is wrong."));

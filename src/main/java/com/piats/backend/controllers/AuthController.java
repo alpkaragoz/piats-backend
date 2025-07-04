@@ -1,5 +1,6 @@
 package com.piats.backend.controllers;
 
+import com.piats.backend.dto.LoginUserRequestDto;
 import com.piats.backend.dto.TokenResponseDto;
 import com.piats.backend.models.User;
 import com.piats.backend.services.UserService;
@@ -19,8 +20,8 @@ public class AuthController {
         this.userService = userService;
     }
 
-    @PostMapping("/tokens")
-    public ResponseEntity<TokenResponseDto> loginUser(@RequestBody User requestUser) {
+    @GetMapping()
+    public ResponseEntity<TokenResponseDto> loginUser(@RequestBody LoginUserRequestDto requestUser) {
         return ResponseEntity.ok().body(userService.authenticateUser(requestUser));
     }
 }
