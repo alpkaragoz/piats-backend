@@ -43,7 +43,7 @@ public class DataInitializer implements CommandLineRunner {
     private void initializeLookupTables() {
         if (applicationStatusRepository.count() == 0) {
             log.info("Initializing Application Statuses...");
-            List<String> appStatuses = Arrays.asList("Received", "Under Review", "Interviewing", "Offered", "Hired", "Rejected");
+            List<String> appStatuses = Arrays.asList("Draft", "Received", "Under Review", "Interviewing", "Offered", "Hired", "Rejected");
             appStatuses.forEach(name -> {
                 ApplicationStatus status = new ApplicationStatus();
                 status.setName(name);

@@ -3,6 +3,8 @@ package com.piats.backend.services;
 import com.piats.backend.dto.ApplicationRequestDto;
 import com.piats.backend.dto.ApplicationResponseDto;
 import com.piats.backend.dto.DetailedApplicationResponseDto;
+import com.piats.backend.dto.InitiateApplicationRequestDto;
+import com.piats.backend.dto.InitiateApplicationResponseDto;
 import com.piats.backend.models.*;
 import com.piats.backend.repos.*;
 import com.piats.backend.repos.specs.ApplicationSpecification;
@@ -30,46 +32,29 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     @Transactional
-    public ApplicationResponseDto createApplication(ApplicationRequestDto requestDto) {
-        // 1. Create and save the Applicant
-        Applicant applicant = new Applicant();
-        ApplicationRequestDto.ApplicantDto applicantDto = requestDto.getApplicant();
-        applicant.setFirstName(applicantDto.getFirstName());
-        applicant.setLastName(applicantDto.getLastName());
-        applicant.setEmail(applicantDto.getEmail());
-        applicant.setProfessionalSummary(applicantDto.getProfessionalSummary());
-        applicant.setPhone(applicantDto.getPhone());
-        applicant.setAddress(applicantDto.getAddress());
-        applicant.setCity(applicantDto.getCity());
-        applicant.setCountry(applicantDto.getCountry());
-        applicant.setPostalCode(applicantDto.getPostalCode());
-        applicant.setLinkedInUrl(applicantDto.getLinkedInUrl());
-        applicant.setPortfolioUrl(applicantDto.getPortfolioUrl());
-        applicant = applicantRepository.save(applicant);
+    public InitiateApplicationResponseDto initiateApplication(InitiateApplicationRequestDto requestDto) {
+        // 1. Create a placeholder applicant to hold the relation
+        Applicant placeholderApplicant = new Applicant();
+        placeholderApplicant.setEmail("placeholder-" + UUID.randomUUID() + "@piats.com");
+        applicantRepository.save(placeholderApplicant);
 
-        // 2. Create the main Application entity
-        Application application = new Application();
-        application.setApplicant(applicant);
-
+        // 2. Find the job posting
         JobPosting jobPosting = jobPostingRepository.findById(requestDto.getJobPostId())
                 .orElseThrow(() -> new EntityNotFoundException("JobPosting not found with id: " + requestDto.getJobPostId()));
-        application.setJobPosting(jobPosting);
         
-        application.setRanking(requestDto.getRanking());
+        // 3. Find the "Draft" status
+        ApplicationStatus draftStatus = applicationStatusRepository.findByName("Draft")
+                .orElseThrow(() -> new IllegalStateException("Draft status not found in database."));
 
-        if (requestDto.getStatusId() != null) {
-            ApplicationStatus status = applicationStatusRepository.findById(requestDto.getStatusId())
-                    .orElseThrow(() -> new EntityNotFoundException("ApplicationStatus not found with id: " + requestDto.getStatusId()));
-            application.setStatus(status);
-        }
-
-        // 3. Map and associate all detail entities
-        addDetailsToApplication(application, requestDto);
-
-        // 4. Save the application and all cascaded entities
+        // 4. Create the draft application
+        Application application = new Application();
+        application.setApplicant(placeholderApplicant);
+        application.setJobPosting(jobPosting);
+        application.setStatus(draftStatus);
+        
         Application savedApplication = applicationRepository.save(application);
 
-        return new ApplicationResponseDto(savedApplication.getId(), "Application created successfully.");
+        return new InitiateApplicationResponseDto(savedApplication.getId());
     }
 
     @Override
@@ -114,10 +99,50 @@ public class ApplicationServiceImpl implements ApplicationService {
         return mapApplicationToDetailedResponse(updatedApplication);
     }
 
+    @Override
+    @Transactional
+    public DetailedApplicationResponseDto completeApplication(UUID applicationId, ApplicationRequestDto requestDto) {
+        // 1. Find the existing draft application
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new EntityNotFoundException("Application not found with id: " + applicationId));
+
+        // 2. Find and update the placeholder applicant with real data
+        Applicant applicant = application.getApplicant();
+        ApplicationRequestDto.ApplicantDto applicantDto = requestDto.getApplicant();
+        applicant.setFirstName(applicantDto.getFirstName());
+        applicant.setLastName(applicantDto.getLastName());
+        applicant.setEmail(applicantDto.getEmail());
+        applicant.setProfessionalSummary(applicantDto.getProfessionalSummary());
+        applicant.setPhone(applicantDto.getPhone());
+        applicant.setAddress(applicantDto.getAddress());
+        applicant.setCity(applicantDto.getCity());
+        applicant.setCountry(applicantDto.getCountry());
+        applicant.setPostalCode(applicantDto.getPostalCode());
+        applicant.setLinkedInUrl(applicantDto.getLinkedInUrl());
+        applicant.setPortfolioUrl(applicantDto.getPortfolioUrl());
+        applicantRepository.save(applicant);
+
+        // 3. Update application ranking
+        application.setRanking(requestDto.getRanking());
+
+        // 4. Map and associate all detail entities (experience, skills, etc.)
+        addDetailsToApplication(application, requestDto);
+
+        // 5. Update the status from "Draft" to "Received"
+        ApplicationStatus receivedStatus = applicationStatusRepository.findByName("Received")
+                .orElseThrow(() -> new IllegalStateException("Received status not found in database."));
+        application.setStatus(receivedStatus);
+        
+        Application savedApplication = applicationRepository.save(application);
+
+        return mapApplicationToDetailedResponse(savedApplication);
+    }
+
     private void addDetailsToApplication(Application application, ApplicationRequestDto requestDto) {
         // Experiences
         if (requestDto.getExperiences() != null) {
-            application.setExperiences(requestDto.getExperiences().stream().map(dto -> {
+            application.getExperiences().clear();
+            requestDto.getExperiences().stream().map(dto -> {
                 Experience exp = new Experience();
                 exp.setApplication(application);
                 exp.setJobTitle(dto.getJobTitle());
@@ -127,12 +152,13 @@ public class ApplicationServiceImpl implements ApplicationService {
                 exp.setStartDate(dto.getStartDate());
                 exp.setEndDate(dto.getEndDate());
                 return exp;
-            }).collect(Collectors.toSet()));
+            }).forEach(application.getExperiences()::add);
         }
 
         // Education
         if (requestDto.getEducations() != null) {
-            application.setEducations(requestDto.getEducations().stream().map(dto -> {
+            application.getEducations().clear();
+            application.getEducations().addAll(requestDto.getEducations().stream().map(dto -> {
                 Education edu = new Education();
                 edu.setApplication(application);
                 edu.setDegree(dto.getDegree());
@@ -146,7 +172,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         
         // Languages
         if (requestDto.getLanguages() != null) {
-            application.setLanguages(requestDto.getLanguages().stream().map(dto -> {
+            application.getLanguages().clear();
+            application.getLanguages().addAll(requestDto.getLanguages().stream().map(dto -> {
                 Language lang = new Language();
                 lang.setApplication(application);
                 lang.setLanguage(dto.getLanguage());
@@ -157,7 +184,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         // Projects
         if (requestDto.getProjects() != null) {
-            application.setProjects(requestDto.getProjects().stream().map(dto -> {
+            application.getProjects().clear();
+            application.getProjects().addAll(requestDto.getProjects().stream().map(dto -> {
                 Project proj = new Project();
                 proj.setApplication(application);
                 proj.setName(dto.getName());
@@ -173,7 +201,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         // Certifications
         if (requestDto.getCertifications() != null) {
-            application.setCertifications(requestDto.getCertifications().stream().map(dto -> {
+            application.getCertifications().clear();
+            application.getCertifications().addAll(requestDto.getCertifications().stream().map(dto -> {
                 Certification cert = new Certification();
                 cert.setApplication(application);
                 cert.setName(dto.getName());
@@ -188,7 +217,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         // Skills
         if (requestDto.getSkills() != null) {
-            application.setSkills(requestDto.getSkills().stream().map(dto -> {
+            application.getSkills().clear();
+            application.getSkills().addAll(requestDto.getSkills().stream().map(dto -> {
                 ApplicationSkill appSkill = new ApplicationSkill();
                 appSkill.setApplication(application);
                 appSkill.setYearsOfExperience(dto.getYearsOfExperience());
