@@ -1,5 +1,6 @@
 package com.piats.backend.controllers;
 
+import com.piats.backend.dto.ApplicationSummaryResponseDto;
 import com.piats.backend.dto.DetailedApplicationResponseDto;
 import com.piats.backend.dto.JobPostingDto;
 import com.piats.backend.services.ApplicationService;
@@ -53,9 +54,9 @@ public class JobPostingController {
     }
 
     @GetMapping("/{jobPostId}/applications")
-    public ResponseEntity<Page<DetailedApplicationResponseDto>> getApplicationsForJobPosting(
-            @PathVariable UUID jobPostId, Pageable pageable) {
-        Page<DetailedApplicationResponseDto> responses = applicationService.getApplicationsByJobPostingId(jobPostId, pageable);
+    public ResponseEntity<List<ApplicationSummaryResponseDto>> getApplicationsForJobPosting(
+            @PathVariable UUID jobPostId) {
+        List<ApplicationSummaryResponseDto> responses = applicationService.getApplicationsByJobPostingId(jobPostId);
         return ResponseEntity.ok(responses);
     }
 } 

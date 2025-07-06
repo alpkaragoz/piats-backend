@@ -5,6 +5,7 @@ import com.piats.backend.dto.ApplicationResponseDto;
 import com.piats.backend.dto.DetailedApplicationResponseDto;
 import com.piats.backend.dto.InitiateApplicationRequestDto;
 import com.piats.backend.dto.InitiateApplicationResponseDto;
+import com.piats.backend.dto.ApplicationSummaryResponseDto;
 import com.piats.backend.models.*;
 import com.piats.backend.repos.*;
 import com.piats.backend.repos.specs.ApplicationSpecification;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
 
@@ -76,12 +78,14 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public Page<DetailedApplicationResponseDto> getApplicationsByJobPostingId(UUID jobPostId, Pageable pageable) {
+    public List<ApplicationSummaryResponseDto> getApplicationsByJobPostingId(UUID jobPostId) {
         if (!jobPostingRepository.existsById(jobPostId)) {
             throw new EntityNotFoundException("JobPosting not found with id: " + jobPostId);
         }
-        Page<Application> applications = applicationRepository.findByJobPostingId(jobPostId, pageable);
-        return applications.map(this::mapApplicationToDetailedResponse);
+        List<Application> applications = applicationRepository.findByJobPostingId(jobPostId);
+        return applications.stream()
+                .map(this::mapApplicationToSummaryResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -337,6 +341,33 @@ public class ApplicationServiceImpl implements ApplicationService {
         if (appSkill.getSkill() != null) {
             dto.setSkillName(appSkill.getSkill().getName());
         }
+        return dto;
+    }
+
+    private ApplicationSummaryResponseDto mapApplicationToSummaryResponse(Application application) {
+        ApplicationSummaryResponseDto dto = new ApplicationSummaryResponseDto();
+        dto.setApplicationId(application.getId());
+        dto.setRanking(application.getRanking());
+        dto.setAppliedAt(application.getAppliedAt());
+
+        if (application.getStatus() != null) {
+            dto.setStatus(application.getStatus().getName());
+        }
+
+        Applicant applicant = application.getApplicant();
+        if (applicant != null) {
+            dto.setApplicantName(applicant.getFirstName() + " " + applicant.getLastName());
+            dto.setApplicantEmail(applicant.getEmail());
+            dto.setApplicantPhone(applicant.getPhone());
+            dto.setProfessionalSummary(applicant.getProfessionalSummary());
+            dto.setAddress(applicant.getAddress());
+            dto.setCity(applicant.getCity());
+            dto.setCountry(applicant.getCountry());
+            dto.setPostalCode(applicant.getPostalCode());
+            dto.setLinkedInUrl(applicant.getLinkedInUrl());
+            dto.setPortfolioUrl(applicant.getPortfolioUrl());
+        }
+
         return dto;
     }
 } 
