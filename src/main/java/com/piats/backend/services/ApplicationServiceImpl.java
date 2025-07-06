@@ -67,14 +67,16 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public Page<DetailedApplicationResponseDto> getAllApplications(Integer statusId, Integer skillId, Pageable pageable) {
+    public List<DetailedApplicationResponseDto> getAllApplications(Integer statusId, Integer skillId) {
         Specification<Application> spec = Specification.allOf(
                 applicationSpecification.hasStatus(statusId),
                 applicationSpecification.hasSkill(skillId)
         );
 
-        Page<Application> applications = applicationRepository.findAll(spec, pageable);
-        return applications.map(this::mapApplicationToDetailedResponse);
+        List<Application> applications = applicationRepository.findAll(spec);
+        return applications.stream()
+                .map(this::mapApplicationToDetailedResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -82,7 +84,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         if (!jobPostingRepository.existsById(jobPostId)) {
             throw new EntityNotFoundException("JobPosting not found with id: " + jobPostId);
         }
-        List<Application> applications = applicationRepository.findByJobPostingId(jobPostId);
+        List<Application> applications = applicationRepository.findByJobPostingIdAndStatus_NameNot(jobPostId, "Draft");
         return applications.stream()
                 .map(this::mapApplicationToSummaryResponse)
                 .collect(Collectors.toList());
@@ -132,10 +134,10 @@ public class ApplicationServiceImpl implements ApplicationService {
         // 4. Map and associate all detail entities (experience, skills, etc.)
         addDetailsToApplication(application, requestDto);
 
-        // 5. Update the status from "Draft" to "Received"
-        ApplicationStatus receivedStatus = applicationStatusRepository.findByName("Received")
-                .orElseThrow(() -> new IllegalStateException("Received status not found in database."));
-        application.setStatus(receivedStatus);
+        // 5. Update the status from "Draft" to "New"
+        ApplicationStatus newStatus = applicationStatusRepository.findByName("New")
+                .orElseThrow(() -> new IllegalStateException("New status not found in database."));
+        application.setStatus(newStatus);
         
         Application savedApplication = applicationRepository.save(application);
 

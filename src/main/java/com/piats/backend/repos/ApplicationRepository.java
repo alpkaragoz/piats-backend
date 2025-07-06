@@ -13,4 +13,6 @@ import java.util.UUID;
 @Repository
 public interface ApplicationRepository extends JpaRepository<Application, UUID>, JpaSpecificationExecutor<Application> {
     List<Application> findByJobPostingId(UUID jobPostId);
+
+    List<Application> findByJobPostingIdAndStatus_NameNot(UUID jobPostId, String statusName);
 } 

@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -36,11 +37,10 @@ public class ApplicationController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<DetailedApplicationResponseDto>> getAllApplications(
+    public ResponseEntity<List<DetailedApplicationResponseDto>> getAllApplications(
             @RequestParam(required = false) Integer statusId,
-            @RequestParam(required = false) Integer skillId,
-            Pageable pageable) {
-        Page<DetailedApplicationResponseDto> responses = applicationService.getAllApplications(statusId, skillId, pageable);
+            @RequestParam(required = false) Integer skillId) {
+        List<DetailedApplicationResponseDto> responses = applicationService.getAllApplications(statusId, skillId);
         return ResponseEntity.ok(responses);
     }
 
