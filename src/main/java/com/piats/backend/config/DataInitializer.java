@@ -43,7 +43,7 @@ public class DataInitializer implements CommandLineRunner {
     private void initializeLookupTables() {
         if (applicationStatusRepository.count() == 0) {
             log.info("Initializing Application Statuses...");
-            List<String> appStatuses = Arrays.asList("Received", "Under Review", "Interviewing", "Offered", "Hired", "Rejected");
+            List<String> appStatuses = Arrays.asList("Draft", "New", "Longlisted", "Shortlisted", "Interview", "Rejected");
             appStatuses.forEach(name -> {
                 ApplicationStatus status = new ApplicationStatus();
                 status.setName(name);
@@ -133,8 +133,8 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createApplications(List<JobPosting> jobPostings, Map<String, Skill> skills, List<ApplicationStatus> statuses) {
-        ApplicationStatus receivedStatus = statuses.stream().filter(s -> "Received".equals(s.getName())).findFirst().orElseThrow();
-        ApplicationStatus reviewStatus = statuses.stream().filter(s -> "Under Review".equals(s.getName())).findFirst().orElseThrow();
+        ApplicationStatus newStatus = statuses.stream().filter(s -> "New".equals(s.getName())).findFirst().orElseThrow();
+        ApplicationStatus longlistedStatus = statuses.stream().filter(s -> "Longlisted".equals(s.getName())).findFirst().orElseThrow();
 
         // --- Application 1: Alice for Backend Role ---
         Applicant applicant1 = new Applicant();
@@ -148,7 +148,7 @@ public class DataInitializer implements CommandLineRunner {
         Application app1 = new Application();
         app1.setApplicant(applicant1);
         app1.setJobPosting(jobPostings.get(0));
-        app1.setStatus(reviewStatus);
+        app1.setStatus(longlistedStatus);
         app1.setRanking(1);
 
         Experience exp1 = new Experience();
@@ -183,7 +183,7 @@ public class DataInitializer implements CommandLineRunner {
         Application app2 = new Application();
         app2.setApplicant(applicant2);
         app2.setJobPosting(jobPostings.get(1));
-        app2.setStatus(receivedStatus);
+        app2.setStatus(newStatus);
         app2.setRanking(1);
 
         Experience exp2 = new Experience();

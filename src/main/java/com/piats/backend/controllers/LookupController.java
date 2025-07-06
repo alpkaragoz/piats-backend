@@ -29,6 +29,7 @@ public class LookupController {
     @GetMapping("/application-statuses")
     public ResponseEntity<List<StatusDto>> getApplicationStatuses() {
         List<StatusDto> statuses = applicationStatusRepository.findAll().stream()
+                .filter(status -> !"Draft".equals(status.getName()))
                 .map(status -> new StatusDto(status.getId(), status.getName()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(statuses);
