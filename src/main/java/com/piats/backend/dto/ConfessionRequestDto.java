@@ -19,6 +19,7 @@ public class ConfessionRequestDto {
     @Size(max = 256, message = "Confession should be shorter than 256 characters.")
     private String confessionText;
 
+    @NotBlank(message = "Department cannot be empty or just spaces.")
     @Size(max = 50, message = "Department should be shorter than 50 characters.")
     private String department;
 }
