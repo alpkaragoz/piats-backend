@@ -38,9 +38,10 @@ public class ApplicationController {
 
     @GetMapping
     public ResponseEntity<List<DetailedApplicationResponseDto>> getAllApplications(
+            @RequestParam(required = false) UUID jobPostId,
             @RequestParam(required = false) Integer statusId,
             @RequestParam(required = false) Integer skillId) {
-        List<DetailedApplicationResponseDto> responses = applicationService.getAllApplications(statusId, skillId);
+        List<DetailedApplicationResponseDto> responses = applicationService.getAllApplications(jobPostId, statusId, skillId);
         return ResponseEntity.ok(responses);
     }
 

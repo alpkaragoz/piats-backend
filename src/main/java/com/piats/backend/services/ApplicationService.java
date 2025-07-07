@@ -15,7 +15,7 @@ public interface ApplicationService {
     InitiateApplicationResponseDto initiateApplication(InitiateApplicationRequestDto requestDto);
     DetailedApplicationResponseDto completeApplication(UUID applicationId, ApplicationRequestDto requestDto);
     DetailedApplicationResponseDto getApplicationById(UUID id);
-    List<DetailedApplicationResponseDto> getAllApplications(Integer statusId, Integer skillId);
+    List<DetailedApplicationResponseDto> getAllApplications(UUID jobPostId, Integer statusId, Integer skillId);
     List<ApplicationSummaryResponseDto> getApplicationsByJobPostingId(UUID jobPostId);
     DetailedApplicationResponseDto updateApplicationStatus(UUID applicationId, Integer statusId);
 } 

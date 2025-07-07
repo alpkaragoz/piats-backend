@@ -4,6 +4,8 @@ import com.piats.backend.models.Application;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class ApplicationSpecification {
 
@@ -25,5 +27,18 @@ public class ApplicationSpecification {
             query.distinct(true);
             return criteriaBuilder.equal(root.join("skills").get("skill").get("id"), skillId);
         };
+    }
+
+    public Specification<Application> hasJobPostingId(UUID jobPostId) {
+        return (root, query, criteriaBuilder) -> {
+            if (jobPostId == null) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.equal(root.get("jobPosting").get("id"), jobPostId);
+        };
+    }
+
+    public Specification<Application> isNotDraft() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("status").get("name"), "Draft");
     }
 } 

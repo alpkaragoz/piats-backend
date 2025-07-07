@@ -10,8 +10,10 @@ import com.piats.backend.models.User;
 import com.piats.backend.repos.JobPostingRepository;
 import com.piats.backend.repos.JobPostingStatusRepository;
 import com.piats.backend.repos.UserRepository;
+import com.piats.backend.repos.specs.JobPostingSpecification;
 import com.piats.backend.utils.AuthUtil;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -50,14 +52,11 @@ public class JobPostingServiceImpl implements JobPostingService {
     }
     
     @Override
-    public List<JobPostingDto.JobPostingResponse> getAllJobPostings(String keyword) {
-        List<JobPosting> jobPostings;
+    public List<JobPostingDto.JobPostingResponse> getAllJobPostings(String keyword, Integer statusId) {
+        Specification<JobPosting> spec = JobPostingSpecification.hasTitle(keyword)
+                .and(JobPostingSpecification.hasStatus(statusId));
 
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            jobPostings = jobPostingRepository.findByTitleContainingIgnoreCase(keyword);
-        } else {
-            jobPostings = jobPostingRepository.findAll();
-        }
+        List<JobPosting> jobPostings = jobPostingRepository.findAll(spec);
 
         return jobPostings.stream()
                 .map(this::mapJobPostingToResponse)
