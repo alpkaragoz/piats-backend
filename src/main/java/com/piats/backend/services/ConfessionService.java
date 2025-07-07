@@ -27,6 +27,11 @@ public class ConfessionService {
     }
 
     public ConfessionRequestDto createConfession(ConfessionRequestDto confessionRequestDto) {
+        if(confessionRequestDto.getNickname().length() > 50) {
+            throw new BadRequestException("err");
+        } else if(confessionRequestDto.getConfessionText().length() > 256) {
+            throw new BadRequestException("err");
+        }
         Confession confession = new Confession();
         confession.setDepartment(confessionRequestDto.getDepartment());
         confession.setConfessionText(confessionRequestDto.getConfessionText());

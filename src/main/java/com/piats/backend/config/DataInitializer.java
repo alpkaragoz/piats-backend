@@ -255,7 +255,43 @@ public class DataInitializer implements CommandLineRunner {
         c6.setConfessionText("I pretend to be busy on Fridays, but I'm actually planning my weekend adventures.");
         c6.setDepartment("Sales");
 
-        confessionRepository.saveAll(Arrays.asList(c1, c2, c3, c4, c5, c6));
+        Confession c7 = new Confession();
+        c7.setNickname("Email Evader");
+        c7.setConfessionText("I often mark emails as 'read' without actually opening them, hoping they go away.");
+        c7.setDepartment("Customer Service");
+        c7.setCreatedAt(ZonedDateTime.now().minusHours(5));
+
+        Confession c8 = new Confession();
+        c8.setNickname("Meeting Muter");
+        c8.setConfessionText("I join video calls and immediately mute myself, then wander off to do other things.");
+        c8.setDepartment("Operations");
+        c8.setCreatedAt(ZonedDateTime.now().minusHours(2));
+
+        Confession c9 = new Confession();
+        c9.setNickname("Stationery Hoarder");
+        c9.setConfessionText("My desk drawer is a secret stash of company pens, notebooks, and sticky notes.");
+        c9.setDepartment("Administration");
+        c9.setCreatedAt(ZonedDateTime.now().minusDays(1));
+
+        Confession c10 = new Confession();
+        c10.setNickname("Snack Thief");
+        c10.setConfessionText("I occasionally 'borrow' snacks from unattended desks, pretending I didn't see them.");
+        c10.setDepartment("Finance");
+        c10.setCreatedAt(ZonedDateTime.now().minusDays(2));
+
+        Confession c11 = new Confession();
+        c11.setNickname("The Impostor");
+        c11.setConfessionText("I sometimes nod knowingly in meetings even when I have no idea what's being discussed.");
+        c11.setDepartment("Research & Development");
+        c11.setCreatedAt(ZonedDateTime.now().minusHours(6));
+
+        Confession c12 = new Confession();
+        c12.setNickname("Desk Chef");
+        c12.setConfessionText("I've attempted to cook instant noodles with the office hot water dispenser more than once.");
+        c12.setDepartment("Logistics");
+        c12.setCreatedAt(ZonedDateTime.now().minusHours(4));
+
+        confessionRepository.saveAll(Arrays.asList(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12));
         log.info("Confession data seeding finished.");
     }
 } 

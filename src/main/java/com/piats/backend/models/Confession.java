@@ -19,10 +19,10 @@ public class Confession {
     @GeneratedValue(generator = "UUID")
     private UUID id;
 
-    @Column(name = "nickname")
+    @Column(name = "nickname", length = 50, nullable = false)
     private String nickname;
 
-    @Column(name = "confession_text")
+    @Column(name = "confession_text", length = 256, nullable = false)
     private String confessionText;
 
     @Column(name = "department")

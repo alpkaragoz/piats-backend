@@ -3,6 +3,7 @@ package com.piats.backend.controllers;
 import com.piats.backend.dto.ConfessionRequestDto;
 import com.piats.backend.dto.ConfessionResponseDto;
 import com.piats.backend.services.ConfessionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class ConfessionController {
     }
 
     @PostMapping
-    public ResponseEntity<ConfessionRequestDto> createConfession(@RequestBody ConfessionRequestDto confessionRequestDto) {
+    public ResponseEntity<ConfessionRequestDto> createConfession(@Valid @RequestBody ConfessionRequestDto confessionRequestDto) {
         return ResponseEntity.ok().body(confessionService.createConfession(confessionRequestDto));
     }
 }
