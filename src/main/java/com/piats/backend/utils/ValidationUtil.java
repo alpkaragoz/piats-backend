@@ -10,7 +10,7 @@ public class ValidationUtil {
     public static void validateRegister(RegisterUserRequestDto requestUser) {
         validateEmail(requestUser.getEmail());
         validatePassword(requestUser.getPassword());
-        validateUserRole(requestUser.getRole());
+        doesUserRoleExist(requestUser.getRole());
     }
 
     // Method to validate email
@@ -34,11 +34,15 @@ public class ValidationUtil {
     }
 
     // Method to validate user role
-    private static void validateUserRole(String role) {
-            try {
-                Role.valueOf(role);  // case-sensitive
-            } catch (IllegalArgumentException e) {
-                throw new BadRoleException("Given role for user is not correct.");
+    public static boolean doesUserRoleExist(String role) {
+        try {
+            if (role == null || role.trim().isEmpty()) {
+                throw new BadRoleException("Role cannot be null or empty.");
+            }
+            Role.valueOf(role.toUpperCase());
+            return true;
+        } catch (IllegalArgumentException e) {
+            throw new BadRoleException("Given role for user is not correct.");
         }
     }
 }
