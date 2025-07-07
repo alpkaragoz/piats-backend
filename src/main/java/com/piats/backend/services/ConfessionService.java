@@ -28,7 +28,6 @@ public class ConfessionService {
 
     public ConfessionRequestDto createConfession(ConfessionRequestDto confessionRequestDto) {
         Confession confession = new Confession();
-        confession.setDepartment(confessionRequestDto.getDepartment());
         confession.setConfessionText(confessionRequestDto.getConfessionText());
         confession.setNickname(confessionRequestDto.getNickname());
         try {
@@ -43,7 +42,6 @@ public class ConfessionService {
 
     private ConfessionResponseDto convertConfessionResponseDto(Confession c) {
         ConfessionResponseDto confessionRequestDto = new ConfessionResponseDto();
-        confessionRequestDto.setDepartment(c.getDepartment());
         confessionRequestDto.setNickname(c.getNickname());
         confessionRequestDto.setConfessionText(c.getConfessionText());
         confessionRequestDto.setCreatedAt(c.getCreatedAt());

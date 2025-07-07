@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class ConfessionRequestDto {
     private String nickname;
     private String confessionText;
-    private String department;
 }

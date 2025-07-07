@@ -25,9 +25,6 @@ public class Confession {
     @Column(name = "confession_text")
     private String confessionText;
 
-    @Column(name = "department")
-    private String department;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;
