@@ -10,4 +10,5 @@ public interface JobPostingService {
     List<JobPostingDto.JobPostingResponse> getAllJobPostings(String keyword);
     JobPostingDto.JobPostingResponse updateJobPosting(UUID id, JobPostingDto.JobPostingRequest request, String header);
     void deleteJobPosting(UUID id, String header);
+    JobPostingDto.JobPostingResponse updateJobPostingStatus(UUID id, Integer statusId);
 } 
