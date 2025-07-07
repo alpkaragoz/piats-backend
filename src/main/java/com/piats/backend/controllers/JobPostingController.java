@@ -3,6 +3,7 @@ package com.piats.backend.controllers;
 import com.piats.backend.dto.ApplicationSummaryResponseDto;
 import com.piats.backend.dto.DetailedApplicationResponseDto;
 import com.piats.backend.dto.JobPostingDto;
+import com.piats.backend.dto.UpdateJobPostingStatusDto;
 import com.piats.backend.services.ApplicationService;
 import com.piats.backend.services.JobPostingService;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,14 @@ public class JobPostingController {
     public ResponseEntity<Void> deleteJobPosting(@PathVariable UUID id /* @RequestHeader("Authorization") String header */) {
         jobPostingService.deleteJobPosting(id, "todo");
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<JobPostingDto.JobPostingResponse> updateJobPostingStatus(
+            @PathVariable UUID id,
+            @RequestBody UpdateJobPostingStatusDto statusDto) {
+        JobPostingDto.JobPostingResponse response = jobPostingService.updateJobPostingStatus(id, statusDto.getStatusId());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{jobPostId}/applications")

@@ -89,6 +89,20 @@ public class JobPostingServiceImpl implements JobPostingService {
         }
         jobPostingRepository.deleteById(id);
     }
+
+    @Override
+    @Transactional
+    public JobPostingDto.JobPostingResponse updateJobPostingStatus(UUID id, Integer statusId) {
+        JobPosting jobPosting = jobPostingRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("JobPosting not found with id: " + id));
+
+        JobPostingStatus status = jobPostingStatusRepository.findById(statusId)
+                .orElseThrow(() -> new EntityNotFoundException("JobPostingStatus not found with id: " + statusId));
+
+        jobPosting.setStatus(status);
+        JobPosting updatedJobPosting = jobPostingRepository.save(jobPosting);
+        return mapJobPostingToResponse(updatedJobPosting);
+    }
     
     private void mapRequestToJobPosting(JobPostingDto.JobPostingRequest request, JobPosting jobPosting) {
         jobPosting.setTitle(request.getTitle());
