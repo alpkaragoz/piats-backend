@@ -12,5 +12,6 @@ import java.time.ZonedDateTime;
 public class ConfessionResponseDto {
     private String nickname;
     private String confessionText;
+    private String department;
     private ZonedDateTime createdAt;
 }
