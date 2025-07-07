@@ -32,6 +32,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ApplicantRepository applicantRepository;
     private final ApplicationRepository applicationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ConfessionRepository confessionRepository;
 
     @Override
     @Transactional
@@ -73,6 +74,7 @@ public class DataInitializer implements CommandLineRunner {
         List<User> users = createUsers();
         List<JobPosting> jobPostings = createJobPostings(users, jobPostingStatusRepository.findAll());
         createApplications(jobPostings, skills, applicationStatusRepository.findAll());
+        createConfessions();
 
         log.info("Core data seeding finished.");
     }
@@ -211,5 +213,47 @@ public class DataInitializer implements CommandLineRunner {
         appSkill.setSkill(skill);
         appSkill.setYearsOfExperience(years);
         return appSkill;
+    }
+
+    private void createConfessions() {
+        if (confessionRepository.count() > 0) {
+            log.info("Confession data already exists. Skipping seed.");
+            return;
+        }
+        log.info("Seeding confession data...");
+
+        Confession c1 = new Confession();
+        c1.setNickname("Anonymous A");
+        c1.setConfessionText("I secretly take extra biscuits from the office kitchen.");
+        c1.setDepartment("Marketing");
+        // createdAt is automatically set by @CreationTimestamp
+
+        Confession c2 = new Confession();
+        c2.setNickname("Code Ninja");
+        c2.setConfessionText("Sometimes I copy-paste code from Stack Overflow without understanding it fully.");
+        c2.setDepartment("Engineering");
+
+        Confession c3 = new Confession();
+        c3.setNickname("Office Prankster");
+        c3.setConfessionText("I swapped everyone's mouse settings to left-handed for a day, and nobody noticed.");
+        c3.setDepartment("IT Support");
+
+        Confession c4 = new Confession();
+        c4.setNickname("Coffee Lover");
+        c4.setConfessionText("I've blamed the empty coffee pot on others more times than I can count.");
+        c4.setDepartment("HR");
+
+        Confession c5 = new Confession();
+        c5.setNickname("The Daydreamer");
+        c5.setConfessionText("My best ideas usually come to me during long, unproductive meetings.");
+        c5.setDepartment("Product Development");
+
+        Confession c6 = new Confession();
+        c6.setNickname("Weekend Warrior");
+        c6.setConfessionText("I pretend to be busy on Fridays, but I'm actually planning my weekend adventures.");
+        c6.setDepartment("Sales");
+
+        confessionRepository.saveAll(Arrays.asList(c1, c2, c3, c4, c5, c6));
+        log.info("Confession data seeding finished.");
     }
 } 
