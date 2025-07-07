@@ -50,8 +50,16 @@ public class JobPostingServiceImpl implements JobPostingService {
     }
     
     @Override
-    public List<JobPostingDto.JobPostingResponse> getAllJobPostings() {
-        return jobPostingRepository.findAll().stream()
+    public List<JobPostingDto.JobPostingResponse> getAllJobPostings(String keyword) {
+        List<JobPosting> jobPostings;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            jobPostings = jobPostingRepository.findByTitleContainingIgnoreCase(keyword);
+        } else {
+            jobPostings = jobPostingRepository.findAll();
+        }
+
+        return jobPostings.stream()
                 .map(this::mapJobPostingToResponse)
                 .collect(Collectors.toList());
     }
