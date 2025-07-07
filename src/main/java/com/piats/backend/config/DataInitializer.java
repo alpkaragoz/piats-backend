@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +32,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ApplicantRepository applicantRepository;
     private final ApplicationRepository applicationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ConfessionRepository confessionRepository;
 
     @Override
     @Transactional
@@ -73,6 +74,7 @@ public class DataInitializer implements CommandLineRunner {
         List<User> users = createUsers();
         List<JobPosting> jobPostings = createJobPostings(users, jobPostingStatusRepository.findAll());
         createApplications(jobPostings, skills, applicationStatusRepository.findAll());
+        createConfessions();
 
         log.info("Core data seeding finished.");
     }
@@ -211,5 +213,85 @@ public class DataInitializer implements CommandLineRunner {
         appSkill.setSkill(skill);
         appSkill.setYearsOfExperience(years);
         return appSkill;
+    }
+
+    private void createConfessions() {
+
+        if (confessionRepository.count() > 0) {
+            log.info("Confession data already exists. Skipping seed.");
+            return;
+        }
+        log.info("Seeding confession data...");
+
+        Confession c1 = new Confession();
+        c1.setNickname("Anonymous A");
+        c1.setConfessionText("I secretly take extra biscuits from the office kitchen.");
+        c1.setDepartment("Marketing");
+        c1.setCreatedAt(ZonedDateTime.now().minusHours(1));
+
+        Confession c2 = new Confession();
+        c2.setNickname("Code Ninja");
+        c2.setConfessionText("Sometimes I copy-paste code from Stack Overflow without understanding it fully.");
+        c2.setDepartment("Engineering");
+        c2.setCreatedAt(ZonedDateTime.now().minusHours(3));
+
+        Confession c3 = new Confession();
+        c3.setNickname("Office Prankster");
+        c3.setConfessionText("I swapped everyone's mouse settings to left-handed for a day, and nobody noticed.");
+        c3.setDepartment("IT Support");
+
+        Confession c4 = new Confession();
+        c4.setNickname("Coffee Lover");
+        c4.setConfessionText("I've blamed the empty coffee pot on others more times than I can count.");
+        c4.setDepartment("HR");
+
+        Confession c5 = new Confession();
+        c5.setNickname("The Daydreamer");
+        c5.setConfessionText("My best ideas usually come to me during long, unproductive meetings.");
+        c5.setDepartment("Product Development");
+
+        Confession c6 = new Confession();
+        c6.setNickname("Weekend Warrior");
+        c6.setConfessionText("I pretend to be busy on Fridays, but I'm actually planning my weekend adventures.");
+        c6.setDepartment("Sales");
+
+        Confession c7 = new Confession();
+        c7.setNickname("Email Evader");
+        c7.setConfessionText("I often mark emails as 'read' without actually opening them, hoping they go away.");
+        c7.setDepartment("Customer Service");
+        c7.setCreatedAt(ZonedDateTime.now().minusHours(5));
+
+        Confession c8 = new Confession();
+        c8.setNickname("Meeting Muter");
+        c8.setConfessionText("I join video calls and immediately mute myself, then wander off to do other things.");
+        c8.setDepartment("Operations");
+        c8.setCreatedAt(ZonedDateTime.now().minusHours(2));
+
+        Confession c9 = new Confession();
+        c9.setNickname("Stationery Hoarder");
+        c9.setConfessionText("My desk drawer is a secret stash of company pens, notebooks, and sticky notes.");
+        c9.setDepartment("Administration");
+        c9.setCreatedAt(ZonedDateTime.now().minusDays(1));
+
+        Confession c10 = new Confession();
+        c10.setNickname("Snack Thief");
+        c10.setConfessionText("I occasionally 'borrow' snacks from unattended desks, pretending I didn't see them.");
+        c10.setDepartment("Finance");
+        c10.setCreatedAt(ZonedDateTime.now().minusDays(2));
+
+        Confession c11 = new Confession();
+        c11.setNickname("The Impostor");
+        c11.setConfessionText("I sometimes nod knowingly in meetings even when I have no idea what's being discussed.");
+        c11.setDepartment("Research & Development");
+        c11.setCreatedAt(ZonedDateTime.now().minusHours(6));
+
+        Confession c12 = new Confession();
+        c12.setNickname("Desk Chef");
+        c12.setConfessionText("I've attempted to cook instant noodles with the office hot water dispenser more than once.");
+        c12.setDepartment("Logistics");
+        c12.setCreatedAt(ZonedDateTime.now().minusHours(4));
+
+        confessionRepository.saveAll(Arrays.asList(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12));
+        log.info("Confession data seeding finished.");
     }
 } 

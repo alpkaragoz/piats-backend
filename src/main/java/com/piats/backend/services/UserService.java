@@ -63,7 +63,7 @@ public class UserService {
         return responseDto;
     }
 
-    public Page<UserInfoRequestDto> getAllUsers(Pageable pageable, String role) {
+    public Page<UserInfoResponseDto> getAllUsers(Pageable pageable, String role) {
         Page<User> userPage;
         if (!(role == null) && ValidationUtil.doesUserRoleExist(role)) {
             String validatedRole = role.toUpperCase();
@@ -71,11 +71,12 @@ public class UserService {
         } else {
             userPage = userRepository.findAll(pageable);
         }
-        return userPage.map(this::convertToUserInfoRequestDto);
+        return userPage.map(this::convertUserInfoResponseDto);
     }
 
-    private UserInfoRequestDto convertToUserInfoRequestDto(User user) {
-        UserInfoRequestDto dto = new UserInfoRequestDto();
+    private UserInfoResponseDto convertUserInfoResponseDto(User user) {
+        UserInfoResponseDto dto = new UserInfoResponseDto();
+        dto.setId(user.getId());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
         dto.setRole(user.getRole().name());
