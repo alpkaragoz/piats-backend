@@ -41,6 +41,6 @@ public class User {
     private String token;
 
     @CreationTimestamp
-    @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "created_at")
     private OffsetDateTime createdAt;
 }
