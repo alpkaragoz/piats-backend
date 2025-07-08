@@ -37,8 +37,10 @@ public class JobPostingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<JobPostingDto.JobPostingResponse>> getAllJobPostings(@RequestParam(required = false) String keyword) {
-        List<JobPostingDto.JobPostingResponse> responses = jobPostingService.getAllJobPostings(keyword);
+    public ResponseEntity<List<JobPostingDto.JobPostingResponse>> getAllJobPostings(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer statusId) {
+        List<JobPostingDto.JobPostingResponse> responses = jobPostingService.getAllJobPostings(keyword, statusId);
         return ResponseEntity.ok(responses);
     }
 

@@ -67,11 +67,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public List<DetailedApplicationResponseDto> getAllApplications(Integer statusId, Integer skillId) {
-        Specification<Application> spec = Specification.allOf(
-                applicationSpecification.hasStatus(statusId),
-                applicationSpecification.hasSkill(skillId)
-        );
+    public List<DetailedApplicationResponseDto> getAllApplications(UUID jobPostId, Integer statusId, Integer skillId) {
+        Specification<Application> spec = applicationSpecification.isNotDraft()
+                .and(applicationSpecification.hasJobPostingId(jobPostId))
+                .and(applicationSpecification.hasStatus(statusId))
+                .and(applicationSpecification.hasSkill(skillId));
 
         List<Application> applications = applicationRepository.findAll(spec);
         return applications.stream()
