@@ -113,7 +113,25 @@ public class DataInitializer implements CommandLineRunner {
 
         JobPosting jp1 = new JobPosting();
         jp1.setTitle("Senior Backend Engineer");
-        jp1.setDescription("Design and build scalable backend services for our core platform.");
+        jp1.setDescription("""
+                We are seeking an experienced Senior Backend Engineer to join our dynamic team. You will be at the heart of our mission to build a robust and scalable platform, tackling challenges in architecture, performance, and security.
+
+                **Responsibilities:**
+                - Design, develop, and maintain high-performance, reliable, and scalable backend services using Java and Spring Boot.
+                - Collaborate with cross-functional teams to define, design, and ship new features.
+                - Write clean, maintainable, and well-tested code.
+                - Mentor junior engineers and contribute to a culture of technical excellence.
+                - Participate in code reviews and architectural discussions.
+                - Optimize applications for maximum speed and scalability.
+
+                **Qualifications:**
+                - 5+ years of professional experience in backend development.
+                - Strong proficiency in Java and the Spring Framework (Spring Boot, Spring MVC).
+                - Experience with relational databases like PostgreSQL.
+                - Familiarity with cloud services (AWS, GCP, or Azure).
+                - Solid understanding of RESTful API design and microservices architecture.
+                - Experience with containerization technologies like Docker and Kubernetes is a plus.
+                """);
         jp1.setLocation("Remote");
         jp1.setEmploymentType(EmploymentType.FULL_TIME);
         jp1.setExperienceLevel(ExperienceLevel.SENIOR_LEVEL);
@@ -123,7 +141,24 @@ public class DataInitializer implements CommandLineRunner {
 
         JobPosting jp2 = new JobPosting();
         jp2.setTitle("Frontend Developer (React)");
-        jp2.setDescription("Develop and maintain our user-facing applications using modern web technologies.");
+        jp2.setDescription("""
+                We are looking for a passionate Frontend Developer to create beautiful and intuitive user interfaces for our web applications. You will work with a talented team of designers and engineers to bring our products to life.
+
+                **Responsibilities:**
+                - Develop new user-facing features using React.js and TypeScript.
+                - Build reusable components and front-end libraries for future use.
+                - Translate designs and wireframes into high-quality code.
+                - Optimize components for maximum performance across a vast array of web-capable devices and browsers.
+                - Collaborate with backend engineers to integrate with our APIs.
+
+                **Qualifications:**
+                - 2+ years of experience in frontend development.
+                - Strong proficiency in JavaScript, TypeScript, and React.js.
+                - Experience with popular React.js workflows (such as Redux or Context API).
+                - Familiarity with modern frontend build pipelines and tools (e.g., Webpack, Babel, NPM).
+                - A keen eye for detail and a passion for UI/UX.
+                - Experience with RESTful APIs.
+                """);
         jp2.setLocation("New York, NY");
         jp2.setEmploymentType(EmploymentType.FULL_TIME);
         jp2.setExperienceLevel(ExperienceLevel.MID_LEVEL);
