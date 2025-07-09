@@ -224,7 +224,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         // Skills
         if (requestDto.getSkills() != null) {
             application.getSkills().clear();
-            application.getSkills().addAll(requestDto.getSkills().stream().map(dto -> {
+            application.getSkills().addAll(requestDto.getSkills().stream()
+                .filter(dto -> dto.getSkillId() != null)
+                .map(dto -> {
                 ApplicationSkill appSkill = new ApplicationSkill();
                 appSkill.setApplication(application);
                 appSkill.setYearsOfExperience(dto.getYearsOfExperience());
